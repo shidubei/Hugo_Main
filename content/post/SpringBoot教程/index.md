@@ -227,7 +227,7 @@ public class Capital{
 
 **以上则是关于mappedBy属性的使用以及OwnningSide和InverseSide的分析，有一点点绕，需要注意理解**
 
-**【或者这样理解，mappedBy从翻译来看，是被动的，被xxx映射，因此mappedBy肯定出现在映射方，被拥有方映射】**
+**<mark>【或者这样理解，mappedBy从翻译来看，是被动的，被xxx映射，因此mappedBy肯定出现在映射方，被拥有方映射】</mark>**
 
 **此外，在编码时，你注意到这里我们用了一个@JoinColumn注解，该注解的作用是告诉JPA该字段作为外键。因为在JPA中，默认会自动生成一个外键列名（关联的实体名字加上_id后缀），这个生成的外键名字可能和我们实际数据库中的外键名字不一致，因此我们需要@JoinColumn来指定对应外键名称**
 
