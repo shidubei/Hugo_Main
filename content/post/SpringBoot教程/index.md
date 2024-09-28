@@ -599,3 +599,187 @@ select c from Course c where c.name = 'Math'
 ```
 
 **以上则是Spring Boot中的JPA使用,其它的JPQL知识待笔者整理**
+
+# 3. Spring Boot MVC
+
+**Spring是一个开发框架,Spring Boot是基于Spring框架,简化了手动配置等系列操作,让程序员专注于业务逻辑编程的工具,而Spring Boot MVC则是Spring Boot中专门针对Web应用开发所设立的模块**
+
+## 3.1 Model-View-Controller(MVC)
+
+**说起MVC,那么什么是MVC?**
+
+**首先MVC是Model-View-Controller的简写,翻译成中文就是模型-视图-控制器,你可能会疑问,这翻译成中文我也看不懂啊,别急,我们将他们的功能列出如下:**
+
+* **Model: 模型代表着程序的核心数据和业务逻辑,也就是直接和数据接触的一方,它经常和数据库进行交互,封装对数据的管理和行为**
+
+* **View: 视图代表将数据呈现给用户,也和我们经常说的前端相关,像HTML-CSS-JavaScript就是经典的前端三件套,而Spring Boot MVC还支持其它的视图技术,比如JSP**
+
+* **Controller: 控制器,我们在设计Sequence Diagram时,常常会有一个控制类存在,这里的控制器和控制类差不多,都表示用于接受用户的输入,处理用户的输入,并且对模型中的数据进行相应的更改.Controller就是Model和View之间的连接,用户可以在View中进行输入,Controller捕捉用户请求并在Model中进行相应的处理,然后将处理结果返回给View.这就和我们Sequence Diagram中的界面类,控制类和实体类一样**
+
+## 3.2 Spring Boot MVC-Controller
+
+**什么是Controller,简而言之,控制器就是接受用户请求,处理用户请求,返回请求结果的一个中间程序**
+
+**一个Spring Controller通常处理HTTP请求等等(如果是Web应用的话),然后将请求的结果以HTML,Json等等格式返回给View进行展示**
+
+## 3.3 常见注解解释
+
+### 3.3.1 @SpringBootApplication
+
+**该注解常常用于标记主应用程序类,(如Main),实际上由三个重要的注解构成:**
+
+* **@Configuration:(构造) 该注解指示这个类是一个Spring配置类,能够定义Spring应用程序上下文中的Bean,也就是说,在该类中使用@Bean可以定义其它主键**
+
+* **@EnableAutoConfiguration:(允许自动构造) 该注解可以启用Spring Boot中的自动配置功能,Spring Boot会根据添加的依赖和应用的设置,自动配置应用程序所需的bean,简化了Spring应用程序的配置工作**
+
+* **@ComponentScan:(组件扫描) 该注解启用组件扫描,Spring会自动扫描该类所在包及其子包中的组件,并将其注册为Spring上下文中的Bean**
+
+
+
+### 3.3.2 @RestController
+
+**该注解专门用于创建RESTful Web服务,结合了@Controller和@ResponseBody注解.简化了Web应用开发过程**
+
+**首先解释下什么是RESTful Web服务**
+
+#### 3.3.2.1 RESTful Web服务
+
+**在进行Web应用编写的时候,我们常常会需要捕获数据,处理数据等等,而RESTful Web则是这种流程的一种架构风格**
+
+**REST全称(Representational State Transfer),在这种风格中,一切都是资源,比如数据(用户,文章,产品),或者服务(获取用户信息,更新产品).每一个资源都用一个URI(Uniform Resource Identifier)进行唯一标识**
+
+**这种架构风格所遵循的原则如下:**
+
+* **无状态**
+
+* **客户端-服务端架构**
+
+* **统一接口(通常是HTTP协议)**
+
+* **可缓存**
+
+* **分层系统**
+
+**而REST采取HTTP协议中的方法来对资源进行处理,在HTTP中,通常使用如下的方法:**
+
+* **GET:获取资源**
+
+* **POST:创建新的资源**
+
+* **PUT:更新现有资源**
+
+* **PATCH:部分更新资源**
+
+* **DELETE:删除资源**
+
+**(是不是和数据库的增删改查操作很像,正是因为很像,所以Controller才能更好的识别请求并相应的对数据进行操作)**
+
+**回到@RestController注解,这个注解的组成部分解释如下:**
+
+* **@Controller: 标记该类为一个MVC控制器,能够处理请求并返回视图或数据**
+
+* **@ResponseBody: 将控制器方法的返回值作为HTTP响应体进行返回**
+
+### 3.3.3 @GetMapping
+
+**该注解用于处理HTTP GET请求**
+
+**例如:**
+
+```java
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class UserController {
+
+    @GetMapping("/users")
+    public List<User> getAllUsers() {
+        // 返回用户列表
+        return userService.getAllUsers();
+    }
+}
+```
+
+**在网页中输入/users,即可被控制器捕捉到,并进行处理**
+
+
+
+## 3.4 Thymeleaf在Controller中的使用
+
+**Thymeleaf是一种和Spring框架紧密联系的将Java中的实体,属性等结合到HTML文件中的工具,它经常在Controller中使用(因为Controller需要接受用户请求并且返回视图)**
+
+**下面是一个例子:我们有一个User实体,用于存储用户数据**
+
+```java
+public class User{
+    private String name;
+    private int age;
+    private String sex;
+
+    public String getName(){
+      return this.name;
+    }
+    public void setName(String name){
+      this.name=name;
+    }
+    public int getAge(){
+      return this,age;
+    }
+    public void setAge(int age){
+      this.age=age;
+    }
+    public String getSex(){
+      return this,sex;
+    }
+    public void setSex(String sex){
+      if(sex.equal("Male") || sex.equal("Female")){
+        this.sex=sex;
+      }   
+    }
+}
+```
+
+**与之对应的,我们要有一个用户控制器来操控用户并且返回数据到视图**
+
+```java
+@RestController
+public class UserController{
+    @GetMapping("/user") //通过url/user访问
+    public String User(Model model){
+      User user = new User();
+      user.setName("IronMan");
+      user.setAge(20);
+      user.setSex("Male");
+      
+      //将实体加入到模型中
+      //第一个属性表示在model中的命名,第二个属性则是映射的实体
+      model.addAttribute("user",user);
+
+      // 返回值要和html文件名一致
+      return "display-user"
+    }
+}
+```
+
+**相应的,我们要在src/resource/template路径下创建对应的html文档,以便Thymeleaf将结果映射到html文件中,该html文件名要和控制器中的返回值一致**
+
+```html
+//名字 display-user.html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<title>Hello Page</title>
+</head>
+<body>
+    //这里的${}表示调用model中的东西,我们之前设置了在model中的名字为user
+    //所以这里能用user去调用
+	<h1>Hello, <span th:text="${user.name}"/> <span th:text="${user.age}"/></h1>
+</body>
+</html>s
+```
+
+**关于Thymeleaf的语法相关知识，在这里不做赘述，放上连接查看Thymeleaf语法知识**
+
+[Thymeleaf语法知识链接]()
