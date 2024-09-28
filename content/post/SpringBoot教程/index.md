@@ -330,7 +330,7 @@ public class Student{
     @Id
     private int id;
     private String name;
-    
+
     @ManyToMany
     @JoinTable(name="student_course",
      joinColumns=@JoinColumn(name="student_id"),
@@ -343,7 +343,7 @@ public class Course{
     @Id
     private int id;
     private String name;
-    
+
     @ManyToMany(mappedBy="courses")
     private List<Course> courses;
 }
@@ -365,6 +365,137 @@ public class Course{
 
 ## 1.5 Inheritence的写法
 
+**在数据库设计中,我们知道一个实体可能继承自另一个实体,这种继承关系也需要在JPA中被映射.而在数据库设计中,我们知道要将这种继承关系转化为表的关系有三种方式: Single Table,Class Table以及Concrete Table.**
+
+**而在Java程序中,我们知道父类和子类,有时候父类并不提供具体的属性和方法,而是作为一个抽象类存在,如:**
+
+```java
+public abstract class Shape{
+    private int id;
+    private String color;
+    
+    public abstract double area();
+}
+
+
+public class Circle extends Shape{
+    private double radius;
+
+    @Override
+    public double area(){
+      return Math.PI*radius*radius;
+}
+}
+```
+
+**这时,我们在对应的数据库设计中需要设计一个表来对应Shape吗?Shape实体压根不存储具体的值啊,具体的值都被Shape的子类给实现,因此,在设计数据表时,Shape实体在数据库中不存在对应的表.**
+
+**那么问题来了,我们该如何让JPA知道Shape实体不存在对应的表,但Shape的属性又被子类继承呢.于是引出@MappedSuperclass的注解.**
+
+### 1.5.1 @MappedSuperclass
+
+**首先,@MappedSuperclass是JPA中对于基类的注解,但本身并不会映射到数据库表里面,<mark>该注解的主要作用是允许子类继承父类中的被映射为数据库表字段的字段以及JPA注解,避免重复的代码</mark>**
+
+**最为重要的,@MappedSuperclass并不会生成表,也就是说,我们在数据库设计时,并不需要专门设计一个表来对应父类,但@MappedSuperclass中的映射字段会被子类继承,<mark>还有一点需要注意的是,被@MappedSuperclass注解的类不能够通过JPQL来查询.</mark>**
+
+**例子:**
+
+```java
+@MappedSuperclass
+public abstract class Shape{
+    @Id
+    @GenerateValue(strategy=GenerationType.IDENTITY)
+    private long id;
+    private String color;
+   
+    public abstract double area();
+}
+
+
+@Entity
+public class Circle extends Shape{
+    private double radius;
+    
+    @Override
+    public double area(){
+      return Math.PI*radius*radius;
+    }
+}
+```
+
+**对应的数据库设计为:**
+
+```sql
+create table Circle(
+    id int auto_increment,
+    color varchar(50),
+    radius double,
+    primary key(id)
+)
+```
+
+**不难发现,实际的数据表中并没有Shape表,但Circle表中却出现了Shape类中的属性.**
+
+****
+
+**虽然但是,有抽象类继承,也有真正的实体类继承呀,有可能父类和子类都需要在数据库中有对应的表,这种情况下,我们的JPA应该怎么去写呢,接下来介绍的注解即解决这个问题**
+
+### 1.5.2 @Inheritance/@DiscriminatorColumn/@DiscriminatorValue
+
+**我们知道数据库设计继承关系时,有单表继承的设计(Single Table),即将父类和子类的属性放在一个表里面,通过定义一个不同的Type来进行区分,比如:**
+
+```sql
+create table person(
+    id int auto_increment,
+    name varchar(50) not null,
+    person_type varchar(25),
+    cap double, // student的字段
+    subject varchar(255) // teacher的字段
+)
+```
+
+**对于单表继承,JPA中对应的写法如下:**
+
+```java
+@Entity
+@Inheritance(strategy=InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name="person_type")
+public abstract class Person{
+    @Id
+    @GenerateValue(strategy=GenerationType.IDENTITY)
+    private int id;
+    private String name;
+}
+
+
+@Entity
+@DiscriminatorValue("student")
+public class Student extends Person{
+    private double cap;
+}
+
+
+@Entity
+@DiscriminatorValue("teacher")
+public class Teacher extends Person{
+    private String subject;
+}
+```
+
+**@Inheritance用于指定实体类继承关系的存储策略**
+
+* **InheritanceType.SINGLE_TABLE:单表继承策略,即所有的父类和子类的数据存储在一个数据表当中**
+
+* **InheritanceType.JOINED:类表继承,每个父类和子类都创建一个表,父类和子类的表通过外键连接**
+
+* **InheritanceType.TABLE_PER_CLASS:确定表继承,即只为子类创建独立的表,而每个子类的表当中存储父类和子类的字段**
+
+
+
+**@DiscriminatorColumn用于指定区分列,如同我们上面代码定义的"person_type",通过这个注解,我们知道继承的表中,区分列是谁**
+
+**@DiscriminatorValue用于指定子类在区分列中的值,比如Student类在表中对应的值就是student,Teacher类在表中对应的值就是teacher,@DiscriminatorValue一般和@DiscriminatorColumn连用,表示该类在表的区分列中的对应值是什么.**
+
 # 2.SpringBoot JPA
 
 **这部分将介绍一些SpringBoot框架中使用JPA的代码编写**
@@ -379,4 +510,92 @@ interface Repository<Class,ID>{}
 
 **其中，Class表示要操作的类，ID表示要操作类的ID的类型（Integer,String等等）**
 
-//ToDo
+**除此之外,SpringBoot里面还提供其它的Repository接口,列表如下**
+
+| 名字                               | 作用                                            |
+| -------------------------------- | --------------------------------------------- |
+| Repository<T,ID>                 | 所有Spring Data Repository接口的顶级父接口,没有任何方法       |
+| CrudRepository<T,ID>             | 继承自Repository接口,提供了增删改查(CRUD)的操作              |
+| PagingAndSortingRepository<T,ID> | 继承了CrudRepository接口,除了增删改查之外,还提供分页和排序的功能      |
+| JpaRepository                    | 继承了PagingAndSortingRepository接口,提供了JPA特定的操作方法 |
+
+**以上是Spring Boot框架中常见的几种Repository库,方便使用**
+
+**此外,在编码时,Spring Boot的JPA编码和JPA一致,需要注意的是结构问题**
+
+**在编程时,我们一般区分实体类(实体层)和接口类(数据访问层),一般来说,一个实体对应一个数据访问接口,接口和实体放在不同的包,以workshop来看,项目中的结构如下:**
+
+```cmd
+
+src/main/java
+├── sg.nus.iss.jpa.getstarted.workshop
+│   └── SpringJpaGetstartedWorkshopApplication.java
+├── sg.nus.iss.jpa.getstarted.workshop.model.domain
+│   ├── Address.java
+│   ├── Course.java
+│   ├── Customer.java
+│   ├── Department.java
+│   └── Student.java
+└── sg.nus.iss.jpa.getstarted.workshop.model.repository
+    ├── AddressRepository.java
+    ├── CourseRepository.java
+    ├── CustomerRepository.java
+    ├── DepartmentRepository.java
+    └── StudentRepository.java
+```
+
+**可以看出,实体类存放在domainn包下,而所有的访问接口都存放在repository包下,之后深入了解SpringBoot后,会对项目的架构有更深入的了解**
+
+## 2.2 Derived Query Methods(派生查询方法)
+
+**Spring Data JPA所提供的一种允许通过解析方法名,自动生成查询语句而无需编写JPQL或者SQL语句的功能.**
+
+**一般来说,派生查询方法的方法命名遵循以下格式:**
+
+```textile
+findBy+属性名+查询条件
+```
+
+**其中属性名和查询条件不能省略,下面给出几个例子**
+
+| 查询条件             | 例子                                      |
+| ---------------- | --------------------------------------- |
+| And              | findByLastnameAndFIrstname              |
+| Or               | findByLastnameOrFirstname               |
+| Is,Equals        | findByFirstnameIs/findByFirstnameEquals |
+| Between          | findByStartDateBetween                  |
+| LessThan         | findByAgeLessThan                       |
+| LessThanEqual    | findByAgeLessThanEqual                  |
+| GreaterThan      | findByAgeGreaterThan                    |
+| GreaterThanEqual | findByAgeGreaterThanEqual               |
+| OrderBy          | findByOrderByLastnameDesc               |
+
+## 2.3 Custom Queries
+
+**除了Spring Data JPA提供的派生语法,我们也可以自己编写方法来实现查询**
+
+### 2.3.1 @Query和@Param
+
+**这个注解用于写SQL或者JPQL查询语句,表明在调用该方法时,执行的查询语句是什么,比如**
+
+```java
+@Query("select c from Course c")
+public List<Course> findAllCourse();
+```
+
+**这样,我们调用findAllCourse方法时,就会执行对应的Query语句了**
+
+**当然,我们还希望某些方法能够接受参数,改变查询语句的条件,这时候,我们就要用到@Param注解了,它提供映射参数的功能,能将我们传入的参数对应到Query语句中**
+
+```java
+@Query("select c from Course c where c.name= :name")
+public List<Course> findCourseByName(@Param("name" String name);
+```
+
+**这样一来,我们传入的name参数,就通过@Param注解,替换了@Query语句中的:name,如我们传入Math,语句就会变为**
+
+```jpql
+select c from Course c where c.name = 'Math'
+```
+
+**以上则是Spring Boot中的JPA使用,其它的JPQL知识待笔者整理**
