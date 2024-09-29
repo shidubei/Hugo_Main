@@ -373,7 +373,7 @@ public class Course{
 public abstract class Shape{
     private int id;
     private String color;
-    
+
     public abstract double area();
 }
 
@@ -407,7 +407,7 @@ public abstract class Shape{
     @GenerateValue(strategy=GenerationType.IDENTITY)
     private long id;
     private String color;
-   
+
     public abstract double area();
 }
 
@@ -415,7 +415,7 @@ public abstract class Shape{
 @Entity
 public class Circle extends Shape{
     private double radius;
-    
+
     @Override
     public double area(){
       return Math.PI*radius*radius;
@@ -490,8 +490,6 @@ public class Teacher extends Person{
 
 * **InheritanceType.TABLE_PER_CLASS:确定表继承,即只为子类创建独立的表,而每个子类的表当中存储父类和子类的字段**
 
-
-
 **@DiscriminatorColumn用于指定区分列,如同我们上面代码定义的"person_type",通过这个注解,我们知道继承的表中,区分列是谁**
 
 **@DiscriminatorValue用于指定子类在区分列中的值,比如Student类在表中对应的值就是student,Teacher类在表中对应的值就是teacher,@DiscriminatorValue一般和@DiscriminatorColumn连用,表示该类在表的区分列中的对应值是什么.**
@@ -526,7 +524,6 @@ interface Repository<Class,ID>{}
 **在编程时,我们一般区分实体类(实体层)和接口类(数据访问层),一般来说,一个实体对应一个数据访问接口,接口和实体放在不同的包,以workshop来看,项目中的结构如下:**
 
 ```cmd
-
 src/main/java
 ├── sg.nus.iss.jpa.getstarted.workshop
 │   └── SpringJpaGetstartedWorkshopApplication.java
@@ -634,8 +631,6 @@ select c from Course c where c.name = 'Math'
 
 * **@ComponentScan:(组件扫描) 该注解启用组件扫描,Spring会自动扫描该类所在包及其子包中的组件,并将其注册为Spring上下文中的Bean**
 
-
-
 ### 3.3.2 @RestController
 
 **该注解专门用于创建RESTful Web服务,结合了@Controller和@ResponseBody注解.简化了Web应用开发过程**
@@ -703,8 +698,6 @@ public class UserController {
 
 **在网页中输入/users,即可被控制器捕捉到,并进行处理**
 
-
-
 ## 3.4 Thymeleaf在Controller中的使用
 
 **Thymeleaf是一种和Spring框架紧密联系的将Java中的实体,属性等结合到HTML文件中的工具,它经常在Controller中使用(因为Controller需要接受用户请求并且返回视图)**
@@ -751,7 +744,7 @@ public class UserController{
       user.setName("IronMan");
       user.setAge(20);
       user.setSex("Male");
-      
+
       //将实体加入到模型中
       //第一个属性表示在model中的命名,第二个属性则是映射的实体
       model.addAttribute("user",user);
@@ -769,13 +762,13 @@ public class UserController{
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-	<meta charset="UTF-8"/>
-	<title>Hello Page</title>
+    <meta charset="UTF-8"/>
+    <title>Hello Page</title>
 </head>
 <body>
     //这里的${}表示调用model中的东西,我们之前设置了在model中的名字为user
     //所以这里能用user去调用
-	<h1>Hello, <span th:text="${user.name}"/> <span th:text="${user.age}"/></h1>
+    <h1>Hello, <span th:text="${user.name}"/> <span th:text="${user.age}"/></h1>
 </body>
 </html>s
 ```
