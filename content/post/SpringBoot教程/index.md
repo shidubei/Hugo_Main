@@ -777,8 +777,6 @@ public class UserController{
 
 [Thymeleaf语法知识链接]()
 
-
-
 # 4.Sping Boot Session
 
 **首先明确什么是Session,我们知道,在进行HTTP请求后,HTTP请求会返回给我们请求相应的数据,但是,每一次我们进行请求,HTTP返回的都是新页面,并没有对我们上一次的请求进行相应的保存,这也是HTTP协议被叫做无状态协议的由来,无状态即不存储会话状态.**

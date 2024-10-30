@@ -1,3 +1,9 @@
+---
+title = 'SQL语句整理'
+date= 2024-10-30T10:00:00+00:00
+draft=true
+---
+
 # SQL语句整理&试题分析
 
 ## 1.Select
@@ -147,17 +153,15 @@ Having(column..) Order By(column...)
 
 ## 4. Limit
 
-
-
 ## 5. SQL语句限制
 
 **对于SQL语句,我们什么时候用Where,什么时候用On,什么时候用Having,Group By等等,好像都没有一个明确的概念.因此,这一小节主要讲解SQL语句的工作原理以及部分关键字的使用限制.**
 
 **首先我们要明确的是SQL语句关键字执行的阶段**
 
-* **FROM: FROM关键字表示SQL执行期间确定数据源的阶段,即确定要进行操作的数据来自哪张表,也是最早执行的阶段**
+* **FROM: FROM关键字表示SQL执行期确定数据源的阶段,即确定要进行操作的数据来自哪张表,也是最早执行的阶段**
 
-* **JOIN/ON: JOIN和ON关键字也在确定数据源的阶段,但通常表示着连接外表的时候,ON关键字表示外表的连接条件,比如On Order.CustomerID = Customer.CustomerID**
+* **JOIN/ON: JOIN和ON关键字也在确定数据源的阶段,但通常表示着连接外表的时候,ON关键字表示外表的连接条件,比如On Order.CustomerID = Customer.CustomerI**
 
 * **Where: 在确定完数据源之后,要提取数据,可能会对数据进行过滤,这时候要用到Where关键字,数据库根据Where之后的条件对要取出的数据进行过滤,然后进行到下一阶段**
 
